@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/count", "destination": "/api/count.js" },
+    { "source": "/api/click", "destination": "/api/click.js" }
+  ]
+}
