@@ -16,7 +16,7 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 app.get('/api/count', (req, res) => {
   res.json(loadData());
