@@ -1,33 +1,27 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
+const { Redis } = require('@upstash/redis');
 
 const app = express();
-const DATA_FILE = path.join(__dirname, 'data.json');
 
-function loadData() {
-  if (!fs.existsSync(DATA_FILE)) {
-    return { count: 0, lastClicked: null };
-  }
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-}
-
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 
 app.use(express.static(__dirname));
 
-app.get('/api/count', (req, res) => {
-  res.json(loadData());
+app.get('/api/count', async (req, res) => {
+  const count = (await redis.get('hate_count')) ?? 0;
+  const lastClicked = await redis.get('hate_last_clicked');
+  res.json({ count, lastClicked });
 });
 
-app.post('/api/click', (req, res) => {
-  const data = loadData();
-  data.count += 1;
-  data.lastClicked = new Date().toISOString();
-  saveData(data);
-  res.json(data);
+app.post('/api/click', async (req, res) => {
+  const count = await redis.incr('hate_count');
+  const lastClicked = new Date().toISOString();
+  await redis.set('hate_last_clicked', lastClicked);
+  res.json({ count, lastClicked });
 });
 
 const PORT = process.env.PORT || 3000;
