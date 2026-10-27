@@ -87,17 +87,33 @@
   <div class="last-clicked" id="last-clicked"></div>
 
   <script>
+    async function api(url, options) {
+      const res = await fetch(url, options);
+      if (!res.ok) throw new Error(`${url} failed: ${res.status}`);
+      return res.json();
+    }
+
     async function fetchCount() {
-      const res = await fetch('/api/count');
-      const data = await res.json();
-      updateUI(data);
+      try {
+        updateUI(await api('/api/count'));
+      } catch (err) {
+        showError(err);
+      }
     }
 
     async function registerHate() {
-      const res = await fetch('/api/click', { method: 'POST' });
-      const data = await res.json();
-      updateUI(data);
-      bumpCount();
+      try {
+        updateUI(await api('/api/click', { method: 'POST' }));
+        bumpCount();
+      } catch (err) {
+        showError(err);
+      }
+    }
+
+    function showError(err) {
+      console.error(err);
+      document.getElementById('last-clicked').textContent =
+        'Server error, check the logs';
     }
 
     function updateUI(data) {
